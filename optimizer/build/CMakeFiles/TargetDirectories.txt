@@ -1,0 +1,3 @@
+/home/wanger/Desktop/optimizer/build/CMakeFiles/edit_cache.dir
+/home/wanger/Desktop/optimizer/build/CMakeFiles/rebuild_cache.dir
+/home/wanger/Desktop/optimizer/build/CMakeFiles/optimizer.dir
