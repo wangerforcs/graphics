@@ -1,7 +1,0 @@
-[
-{
-  "directory": "/home/wanger/Desktop/optimizer/build",
-  "command": "/usr/bin/c++  -DFMT_HEADER_ONLY -DSPDLOG_FMT_EXTERNAL -I/home/wanger/Desktop/optimizer/deps    -std=gnu++17 -o CMakeFiles/optimizer.dir/main.cpp.o -c /home/wanger/Desktop/optimizer/main.cpp",
-  "file": "/home/wanger/Desktop/optimizer/main.cpp"
-}
-]
