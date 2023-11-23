@@ -2,6 +2,7 @@
 
 #include <array>
 #include <optional>
+#include <iostream>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -70,15 +71,15 @@ void Object::update(vector<Object*>& all_objects)
     // 首先调用 step 函数计下一步该物体的运动学状态。
     KineticState current_state{center, velocity, force / mass};
     KineticState next_state = step(prev_state, current_state);
-    (void)next_state;
     // 将物体的位置移动到下一步状态处，但暂时不要修改物体的速度。
     center = next_state.position;
     // 遍历 all_objects，检查该物体在下一步状态的位置处是否会与其他物体发生碰撞。
 
     Matrix4f model = this->model();
     for (auto object : all_objects) {
-        (void)object;
-
+        if(object->id == id){
+            continue;
+        }
         // 检测该物体与另一物体是否碰撞的方法是：
         // 遍历该物体的每一条边，构造与边重合的射线去和另一物体求交，如果求交结果非空、
         // 相交处也在这条边的两个端点之间，那么该物体与另一物体发生碰撞。
@@ -93,7 +94,7 @@ void Object::update(vector<Object*>& all_objects)
 
             Ray ray;
             ray.origin = v0;
-            ray.direction = (v1 - v0).normalized();
+            ray.direction = v1 - v0;
 
             if (BVH_for_collision) {
             } else {
@@ -102,7 +103,19 @@ void Object::update(vector<Object*>& all_objects)
             // 如果发生碰撞，按动量定理计算两个物体碰撞后的速度，并将下一步状态的位置设为
             // current_state.position ，以避免重复碰撞。
 
-            std::optional<Intersection> result =  naive_intersect(ray, object->mesh, model);
+            std::optional<Intersection> result =  naive_intersect(ray, object->mesh, object->model());
+            if(result != std::nullopt){
+                // stop the object
+                // next_state.position = current_state.position;
+                // next_state.velocity = Vector3f(0,0,0);
+
+                next_state.position = current_state.position;
+                float jr = 2.0f * (next_state.velocity - object->velocity).dot(result->normal) / (1 / mass + 1 / object->mass);
+                next_state.velocity = next_state.velocity - jr / mass * result->normal;
+                object->velocity = object->velocity + jr / object->mass * result->normal;
+                // std::cout << "collision: " << id << " " << next_state.velocity << " " << object->id << " " << object->velocity << std::endl; 
+                break;
+            }
         }
     }
     // 将上一步状态赋值为当前状态，并将物体更新到下一步状态。

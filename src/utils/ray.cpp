@@ -61,6 +61,7 @@ optional<Intersection> ray_triangle_intersect(const Ray& ray, const GL::Mesh& me
 optional<Intersection> naive_intersect(const Ray& ray, const GL::Mesh& mesh, const Matrix4f model)
 {
     Intersection result;
+    result.t = infinity + 1;
     for (size_t i = 0; i < mesh.faces.count(); ++i) {
         // Vertex a, b and c are assumed to be in counterclockwise order.
         // Construct matrix A = [d, a - b, a - c] and solve Ax = (a - origin)
@@ -78,13 +79,19 @@ optional<Intersection> naive_intersect(const Ray& ray, const GL::Mesh& mesh, con
 
         float det = M.determinant();
         if(std::fabs(det) < eps){
-            return std::nullopt;
+            continue;
         }
 
         Vector3f res = M.inverse() * (ray.origin - v0);
         float t = res[0], alpha = res[1], beta = res[2], gamma = 1 - alpha - beta;
         if(t < eps || alpha < 0 || beta < 0 || gamma < 0){
-            return std::nullopt;
+            continue;
+        }else if(t < 1){
+            result.t = t;
+            result.face_index = i;
+            result.barycentric_coord = {alpha, beta, gamma};
+            result.normal = (v1 - v0).cross(v2 - v0).normalized();
+            break;
         }
     }
     // Ensure result.t is strictly less than the constant `infinity`.
